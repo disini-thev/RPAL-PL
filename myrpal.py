@@ -4,8 +4,8 @@ import sys
 def lexical_analyser(prog_file):
     with open(prog_file, 'r') as file:
         text = file.read()
-        pos = 0
-        tokens = []
+    pos = 0
+    tokens = []
     
     # letters are handled using isalpha
     # digits are handled using isdigit
@@ -104,7 +104,7 @@ def lexical_analyser(prog_file):
             else:    
                 print(f"Error: Invalid character '{char}' found.")
                 return
-    print(tokens)
+    return tokens
 
 def main():
     if len(sys.argv) != 2:
@@ -113,6 +113,8 @@ def main():
 
     prog_file = sys.argv[1]
 
-    lexical_analyser(prog_file)
+    tokens = lexical_analyser(prog_file)
+    print(tokens)
+
 if __name__ == "__main__":
     main()
