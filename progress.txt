@@ -1,0 +1,6 @@
+tokenixe_  functions
+---have to complete string and comments, others are done
+check the conditions in lexical analyzer if conditions
+
+add the text to the test.txt file
+change the main function

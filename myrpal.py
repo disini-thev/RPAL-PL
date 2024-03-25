@@ -53,9 +53,9 @@ def lexical_analyser(prog_file):
         # complete 
         pass
     
-    def tokenize_punction():
+    def tokenize_punction(token):
         """ Tokenize symbols in the text: Assign the same symbol """
-        tokens.append((text[pos],text[pos]))
+        tokens.append((token,token))
     
 
             
@@ -73,16 +73,37 @@ def lexical_analyser(prog_file):
                 pos += 1
                 tokenize_identifier(token)
             
-            # tokenize operators
+            # tokenize integers
             elif char.isdigit():
                 token = char
                 pos += 1
                 tokenize_integer(token)
             
-            # tokenize 
+            # tokenize operators
+            elif char in Operator_symbols:
+                token = char
+                pos += 1
+                tokenize_operator(token)
             
-            print(f"Error: Invalid character '{char}' found.")
-            return
+            # tokenize strings
+            elif char+token[pos+1] == "''":
+                token = char+token[pos+1]
+                pos += 2
+                tokenize_string(token)
+
+            # tokenize comments
+            elif char+token[pos+1] == "//":
+                token = char+token[pos+1]
+                pos += 2
+                tokenize_comment(token)
+
+            # tokenize punctuation
+            elif char in ['(',')',';',',']:
+                tokenize_punction(char)
+                pos += 1
+            else:    
+                print(f"Error: Invalid character '{char}' found.")
+                return
     print(tokens)
 
 def main():
@@ -92,8 +113,6 @@ def main():
 
     prog_file = sys.argv[1]
 
-    # lexical_analyser(prog_file)
-    Operator_symbols = "+-*<>&.@/:=~|$!#%^_[]{}'?" +'"'
-    print(Operator_symbols)
+    lexical_analyser(prog_file)
 if __name__ == "__main__":
     main()
