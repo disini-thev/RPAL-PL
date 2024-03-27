@@ -45,13 +45,25 @@ def lexical_analyser(prog_file):
 
     def tokenize_string(token):
         """ Tokenize strings in the text: Assign "STRING" """
-        # complete 
-        pass
+        token = text[pos]
+        pos += 1  # Move past the opening quote
+        while pos < len(text) and text[pos] != '"':
+            token += text[pos]
+            pos += 1
+        token += text[pos]  # Append closing quote
+        pos += 1  # Move past the closing quote
+        tokens.append((token, "STRING"))
+        return pos 
 
     def tokenize_comment(token):
         """ Tokenize comments in the text: Assign "COMMENT" """
-        # complete 
-        pass
+        token = "//"
+        pos += 2  # Move past the slashes
+        while pos < len(text) and text[pos] != '\n':
+            token += text[pos]
+            pos += 1
+        tokens.append((token, "COMMENT"))
+        return pos 
     
     def tokenize_punction(token):
         """ Tokenize symbols in the text: Assign the same symbol """
@@ -107,9 +119,7 @@ def lexical_analyser(prog_file):
     return tokens
 
 def main():
-    if len(sys.argv) != 2:
-        print("Error in command line arguments. Usage: python myrpal.py file_name")
-        return
+     
 
     prog_file = sys.argv[1]
 
