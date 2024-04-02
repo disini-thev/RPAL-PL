@@ -1,110 +1,132 @@
 import sys
 
-# read the text file, append tho token and the token type as a tuple to a list "tokens"
-def lexical_analyser(prog_file):
-    with open(prog_file, 'r') as file:
-        text = file.read()
-    pos = 0
-    tokens = []
+class lexical_analyser:
     
     # letters are handled using isalpha
     # digits are handled using isdigit
     # spaces are handled using isspace
-        
-    # to handle operators:
+    
     Operator_symbols = "+-*<>&.@/:=~|$!#%^_[]{}'?" +'"'
 
-    # functions to tokenize each lexeme type
-    def tokenize_spaces(token):
+    def __init__(self, prog_file):
+        self.prog_file = prog_file
+        self.tokens = []
+        self.pos = 0
+        self.text = ""      
+    
+    def tokenize_spaces(self, token):
         """ Tokenize spaces in the text: Assign "DELETE" """
-        while (pos < len(text) and text[pos].isspace()):
-            token += text[pos]
-            pos += 1
-        tokens.append((token,"DELETE"))
+        while (self.pos < len(self.text) and self.text[self.pos].isspace()):
+            token += self.text[self.pos]
+            self.pos += 1
+        self.tokens.append((token,"DELETE"))
     
-    def tokenize_identifier(token):
+    def tokenize_identifier(self, token):
         """ Tokenize identifiers in the text: Assign "IDENTIFIER" """
-        while (pos < len(text) and (text[pos].isalnum()) or text[pos] == "_"):
-            token += text[pos]
-            pos += 1
-        tokens.append((token,"IDENTIFIER"))
+        while (self.pos < len(self.text) and (self.text[self.pos].isalnum()) or self.text[self.pos] == "_"):
+            token += self.text[self.pos]
+            self.pos += 1
+        self.tokens.append((token,"IDENTIFIER"))
+        # print(token)
     
-    def tokenize_integer(token):
+    def tokenize_integer(self, token):
         """ Tokenize integers in the text: Assign "INTEGER" """
-        while (pos < len(text) and text[pos].isdigit()):
-            token += text[pos]
-            pos += 1
-        tokens.append((token,"INTEGER"))
+        while (self.pos < len(self.text) and self.text[self.pos].isdigit()):
+            token += self.text[self.pos]
+            self.pos += 1
+        self.tokens.append((token,"INTEGER"))
+        # print(token)
     
-    def tokenize_operator(token):
+    def tokenize_operator(self, token):
         """ Tokenize operators in the text: Assign "OPERATOR" """
-        while (pos < len(text) and text[pos] in Operator_symbols):
-            token += text[pos]
-            pos += 1
-        tokens.append((token,"OPERATOR"))
+        while (self.pos < len(self.text) and self.text[self.pos] in self.Operator_symbols):
+            token += self.text[self.pos]
+            self.pos += 1
+        self.tokens.append((token,"OPERATOR"))
+        # print(token)
 
-    def tokenize_string(token):
+    def tokenize_string(self, token):
         """ Tokenize strings in the text: Assign "STRING" """
-        # complete 
-        pass
+        while self.pos < (len(self.text)-1) and self.text[self.pos:self.pos+2] != "''":
+            token += self.text[self.pos]
+            self.pos += 1
+        token += "''"  # Append closing quote
+        self.pos += 2  # Move past the closing quote
+        self.tokens.append((token, "STRING"))
+        # print(token) 
 
-    def tokenize_comment(token):
+    def tokenize_comment(self, token):
         """ Tokenize comments in the text: Assign "COMMENT" """
-        # complete 
-        pass
+        while self.pos < len(self.text) and self.text[self.pos] != '\n':
+            token += self.text[self.pos]
+            self.pos += 1
+        self.tokens.append((token, "COMMENT"))
+        # print(token)
     
-    def tokenize_punction(token):
+    def tokenize_punction(self, token):
         """ Tokenize symbols in the text: Assign the same symbol """
-        tokens.append((token,token))
+        self.tokens.append((token,token))
+        # print(token)
     
-
-            
-    while pos < len(text):
-            char = text[pos]
+    def lexical_analyser(self):
+        with open(self.prog_file, 'r') as file:
+            self.text = file.read()
+        
+        while self.pos < len(self.text):
+            char = self.text[self.pos]
             # tokenize spaces
             if char.isspace():
+                # print("Space found")
                 token=char
-                pos+=1
-                tokenize_spaces(token)
-            
+                self.pos+=1
+                self.tokenize_spaces(token)
+                
             # tokenize identifiers
             elif char.isalpha():
+                # print("Identifier found")
                 token = char
-                pos += 1
-                tokenize_identifier(token)
+                self.pos += 1
+                self.tokenize_identifier(token)
             
             # tokenize integers
             elif char.isdigit():
+                # print("Integer found")
                 token = char
-                pos += 1
-                tokenize_integer(token)
-            
-            # tokenize operators
-            elif char in Operator_symbols:
-                token = char
-                pos += 1
-                tokenize_operator(token)
-            
-            # tokenize strings
-            elif char+token[pos+1] == "''":
-                token = char+token[pos+1]
-                pos += 2
-                tokenize_string(token)
+                self.pos += 1
+                self.tokenize_integer(token)
 
             # tokenize comments
-            elif char+token[pos+1] == "//":
-                token = char+token[pos+1]
-                pos += 2
-                tokenize_comment(token)
+            elif char + self.text[self.pos+1] == "//":
+                # print("Comment found")
+                token = char+self.text[self.pos+1]
+                self.pos += 2
+                self.tokenize_comment(token)
 
+            # tokenize strings
+            elif char+ self.text[self.pos+1] == "''":
+                # print("String found")       
+                token = char+self.text[self.pos+1]
+                self.pos += 2
+                self.tokenize_string(token)
+            
+            # tokenize operators
+            elif char in lexical_analyser.Operator_symbols:
+                # print("Operator found")
+                token = char
+                self.pos += 1
+                self.tokenize_operator(token)
+                
             # tokenize punctuation
             elif char in ['(',')',';',',']:
-                tokenize_punction(char)
-                pos += 1
+                # print("Punctuation found")
+                self.tokenize_punction(char)
+                self.pos += 1
             else:    
                 print(f"Error: Invalid character '{char}' found.")
                 return
-    return tokens
+            # print(self.tokens)
+        return self.tokens
+
 
 def main():
     if len(sys.argv) != 2:
@@ -113,7 +135,8 @@ def main():
 
     prog_file = sys.argv[1]
 
-    tokens = lexical_analyser(prog_file)
+    LE = lexical_analyser(prog_file)
+    tokens = LE.lexical_analyser()
     print(tokens)
 
 if __name__ == "__main__":
