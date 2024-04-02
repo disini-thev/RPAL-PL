@@ -129,9 +129,7 @@ class lexical_analyser:
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Error in command line arguments. Usage: python myrpal.py file_name")
-        return
+     
 
     prog_file = sys.argv[1]
 
