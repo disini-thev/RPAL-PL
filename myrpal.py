@@ -1,4 +1,7 @@
 import sys
+from tree import Tree, Stack
+
+
 
 class Parser:
     def __init__(self, tokens):
@@ -6,6 +9,7 @@ class Parser:
         self.pos = 0
         self.current_token = self.tokens[self.pos]
 
+    
     def match(self, expected_token):
         if self.current_token[1] == expected_token:
             self.pos += 1
@@ -14,6 +18,80 @@ class Parser:
             return True
         return False
 
+    
+    def parse(self):
+            return self.parse_program()
+    
+    def parse_program(self):
+        tree = Tree("Program")
+        while self.pos < len(self.tokens):
+            statement = self.parse_statement()
+            if statement:
+                tree.add_child(statement)
+        return tree
+    
+    def parse_statement(self):
+        if self.current_token[1] == "IDENTIFIER":
+            return self.parse_assignment()
+        elif self.current_token[1] == "DELETE":
+            self.match("DELETE")
+            return None
+        else:
+            print(f"Error: Invalid statement at position {self.pos}")
+            return None
+    
+    def parse_assignment(self):
+        tree = Tree("Assignment")
+        identifier = self.current_token[0]
+        if self.match("IDENTIFIER"):
+            if self.match("="):
+                expression = self.parse_expression()
+                if expression:
+                    tree.add_child(Tree(identifier))
+                    tree.add_child(expression)
+                    return tree
+                else:
+                    print(f"Error: Invalid expression at position {self.pos}")
+                    return None
+            else:
+                print(f"Error: '=' expected at position {self.pos}")
+                return None
+        else:
+            print(f"Error: Invalid identifier at position {self.pos}")
+            return None
+    
+    def parse_expression(self):
+        return self.parse_term()
+    
+    def parse_term(self):
+        tree = self.parse_factor()
+        while self.current_token[1] == "OPERATOR" and self.current_token[0] in ["+", "-"]:
+            operator = self.current_token[0]
+            if self.match("OPERATOR"):
+                factor = self.parse_factor()
+                if factor:
+                    tree = Tree(operator, [tree, factor])
+                else:
+                    print(f"Error: Invalid factor at position {self.pos}")
+                    return None
+            else:
+                print(f"Error: Invalid operator at position {self.pos}")
+                return None
+        return tree
+    
+    def parse_factor(self):
+        if self.current_token[1] == "INTEGER":
+            tree = Tree("Integer", [Tree(self.current_token[0])])
+            self.match("INTEGER")
+            return tree
+        elif self.current_token[1] == "IDENTIFIER":
+            tree = Tree("Identifier", [Tree(self.current_token[0])])
+            self.match("IDENTIFIER")
+            return tree
+        else:
+            print(f"Error: Invalid factor at position {self.pos}")
+            return None
+    
 class Lexical_Analyser:
     
     # letters are handled using isalpha
@@ -126,7 +204,7 @@ class Lexical_Analyser:
                 self.tokenize_string(token)
             
             # tokenize operators
-            elif char in lexical_analyser.Operator_symbols:
+            elif char in Lexical_Analyser.Operator_symbols:
                 # print("Operator found")
                 token = char
                 self.pos += 1
@@ -150,8 +228,8 @@ def main():
     LE = Lexical_Analyser(prog_file)
     tokens = LE.lexical_analyser()
     # for token in tokens:
-    #     print(token[0], token[1])
-    P=parser(tokens)
+    # print(token[0], token[1])
+    P=Parser(tokens)
 
 
 if __name__ == "__main__":
