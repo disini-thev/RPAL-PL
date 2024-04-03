@@ -25,7 +25,7 @@ class Tree:
         self.build_tree(Tree.node_stack)
 
     def build_tree(self, node_stack):
-        for i in range (self.num_children): #i = 5 4 3 2 1 0 for 6 children
+        for i in range (self.num_children-1, -1,-1): #i = 5 4 3 2 1 0 for 6 children
             self.children[i] = node_stack.pop()
         node_stack.push(self)
 
@@ -55,15 +55,21 @@ def preorder_traversal(root, level=0):
     for child in root.children:
         preorder_traversal(child, level + 1)  # Recursively traverse each child node with increased level
 
-"""
+
 # Sample code to test the Tree class
 
 # Create a tree with value 1 and 3 children
-tree5 = Tree(5,0)
-tree4 = Tree(4,0)
-tree3 = Tree(3,0)
-tree2 = Tree(2,1)
-tree1 = Tree(1, 3)
+t1=Tree("f",0)
+t2=Tree("x",0)
+t3=Tree(3,0)
+t4=Tree("func_form",3)
+t5=Tree("p",0)
+t6=Tree("f",0)
+t7=Tree("3",0)
+t8=Tree("gamma",2)
+t9=Tree("gamma",2)
+t10=Tree("let",2)
 
-preorder_traversal(tree1)
-"""
+
+
+preorder_traversal(t10)
