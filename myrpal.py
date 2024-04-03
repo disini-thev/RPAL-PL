@@ -14,7 +14,7 @@ class Parser:
             return True
         return False
 
-class Lexical_Analyser:
+class LexicalAnalyser:
     
     # letters are handled using isalpha
     # digits are handled using isdigit
@@ -126,7 +126,7 @@ class Lexical_Analyser:
                 self.tokenize_string(token)
             
             # tokenize operators
-            elif char in lexical_analyser.Operator_symbols:
+            elif char in LexicalAnalyser.Operator_symbols:
                 # print("Operator found")
                 token = char
                 self.pos += 1
@@ -147,11 +147,11 @@ class Lexical_Analyser:
 def main():
     prog_file = sys.argv[1]
 
-    LE = Lexical_Analyser(prog_file)
+    LE = LexicalAnalyser(prog_file)
     tokens = LE.lexical_analyser()
     # for token in tokens:
     #     print(token[0], token[1])
-    P=parser(tokens)
+    P=Parser(tokens)
 
 
 if __name__ == "__main__":
