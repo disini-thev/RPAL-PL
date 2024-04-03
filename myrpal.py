@@ -1,6 +1,20 @@
 import sys
 
-class lexical_analyser:
+class Parser:
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.pos = 0
+        self.current_token = self.tokens[self.pos]
+
+    def match(self, expected_token):
+        if self.current_token[1] == expected_token:
+            self.pos += 1
+            if self.pos < len(self.tokens):
+                self.current_token = self.tokens[self.pos]
+            return True
+        return False
+
+class Lexical_Analyser:
     
     # letters are handled using isalpha
     # digits are handled using isdigit
@@ -8,6 +22,8 @@ class lexical_analyser:
     
     Operator_symbols = "+-*<>&.@/:=~|$!#%^_[]{}'?" +'"'
 
+    """ each lexical analyzer instance should have a program file, a token list, 
+    a pointer to the current position, and the text of the program initialized to an empty string"""
     def __init__(self, prog_file):
         self.prog_file = prog_file
         self.tokens = []
@@ -129,13 +145,14 @@ class lexical_analyser:
 
 
 def main():
-     
-
     prog_file = sys.argv[1]
 
-    LE = lexical_analyser(prog_file)
+    LE = Lexical_Analyser(prog_file)
     tokens = LE.lexical_analyser()
-    print(tokens)
+    # for token in tokens:
+    #     print(token[0], token[1])
+    P=parser(tokens)
+
 
 if __name__ == "__main__":
     main()
