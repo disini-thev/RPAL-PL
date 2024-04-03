@@ -1,7 +1,4 @@
 import sys
-from tree import Tree, Stack
-
-
 
 class Parser:
     def __init__(self, tokens):
@@ -9,7 +6,6 @@ class Parser:
         self.pos = 0
         self.current_token = self.tokens[self.pos]
 
-    
     def match(self, expected_token):
         # check this functionif it's necessary
         if self.current_token[1] == expected_token:
@@ -18,6 +14,72 @@ class Parser:
                 self.current_token = self.tokens[self.pos]
             return True
         return False
+    
+    def E(self):
+        pass
+
+    def Ew(self):
+        pass
+
+    def T(self):
+        pass
+
+    def Ta(self):
+        pass
+
+    def Tc(self):
+        pass
+
+    def B(self):
+        pass
+
+    def Bt(self):
+        pass
+
+    def Bs(self):
+        pass
+
+    def Bp(self):
+        pass
+
+    def A(self):
+        pass
+
+    def At(self):
+        pass
+
+    def Af(self):
+        pass
+
+    def Ap(self):
+        pass
+
+    def R(self):
+        pass
+
+    def Rn(self):
+        pass
+
+    def D(self):
+        pass
+
+    def Da(self):
+        pass
+
+    def Dr(self):
+        pass
+
+    def Db(self):
+        pass
+
+    def Vb(self): 
+        pass
+
+    def Vl(self):
+        pass   
+
+
+
 
 class LexicalAnalyser:
     
@@ -131,7 +193,7 @@ class LexicalAnalyser:
                 self.tokenize_string(token)
             
             # tokenize operators
-            elif char in lexical_analyser.Operator_symbols:
+            elif char in LexicalAnalyser.Operator_symbols:
                 # print("Operator found")
                 token = char
                 self.pos += 1
