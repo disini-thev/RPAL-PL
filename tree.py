@@ -22,12 +22,14 @@ class Tree:
         self.value = value
         self.num_children = num_children
         self.children = [None] * num_children
-        self.build_tree(Tree.node_stack)
+        self.build_tree()
 
-    def build_tree(self, node_stack):
+    def build_tree(self):
         for i in range (self.num_children-1, -1,-1): #i = 5 4 3 2 1 0 for 6 children
-            self.children[i] = node_stack.pop()
-        node_stack.push(self)
+            if Tree.node_stack.is_empty():
+                print("Can't ")
+            self.children[i] = Tree.node_stack.pop()
+        Tree.node_stack.push(self)
 
 def level_order_traversal(root):
     if root is None:

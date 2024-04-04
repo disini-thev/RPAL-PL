@@ -1,82 +1,469 @@
 import sys
 
+class Stack:
+    def __init__(self):
+        self.stack = []
+
+    def push(self, item):
+        self.stack.append(item)
+
+    def pop(self):
+        if not self.is_empty():
+            return self.stack.pop()
+        else:
+            raise Exception("Stack is empty")
+
+    def is_empty(self):
+        return len(self.stack) == 0
+
+class Tree:
+    # a stack containing nodes
+    node_stack = Stack()
+
+    def __init__(self, value, num_children):
+        self.value = value
+        self.num_children = num_children
+        self.children = [None] * num_children
+        self.build_tree()
+
+    def build_tree(self):
+        for i in range (self.num_children-1, -1,-1): #i = 5 4 3 2 1 0 for 6 children
+            if Tree.node_stack.is_empty():
+                print("Can't ")
+            self.children[i] = Tree.node_stack.pop()
+        Tree.node_stack.push(self)
+    def call_tree():
+        if not Tree.node_stack.is_empty():
+            root = Tree.node_stack.pop()
+            preorder_traversal(root)
+        else:
+            print("Tree is empty")
+
+def preorder_traversal(root, level=0):
+    if root is None:
+        return
+
+    print("." * level, root.value)
+
+    for child in root.children:
+        preorder_traversal(child, level + 1)  # Recursively traverse each child node with increased level
+
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
         self.pos = 0
-        self.current_token = self.tokens[self.pos]
+        self.next_token = self.tokens[0] # initializing the first token as 0th
 
-    def match(self, expected_token):
-        # check this functionif it's necessary
-        if self.current_token[1] == expected_token:
-            self.pos += 1
-            if self.pos < len(self.tokens):
-                self.current_token = self.tokens[self.pos]
-            return True
-        return False
-    
+    def read(self, expected_token):
+        # check if this code is correct 1
+        if (self.tokens[self.pos])[1] == "DELETE":
+            print("Skipped DELETE tokens")
+            self.pos+=1
+            self.next_token = self.tokens[self.pos]
+            print("read", self.next_token)
+
+        if self.next_token[0] != expected_token:
+            print(f"Error: Expected {expected_token} but got {self.next_token[0]}")
+            sys.exit()
+        self.pos+=1
+        self.next_token = self.tokens[self.pos]
+        print("read", self.next_token)
+
+        if (self.tokens[self.pos])[1] == "DELETE":
+            print("Skipped DELETE tokens")
+            self.pos+=1
+            self.next_token = self.tokens[self.pos]
+            print("read", self.next_token)
+        
     def E(self):
-        pass
+        """E->'let' D 'in' E    => 'let'
+            -> 'fn'  Vb+ '.' E  => 'lambda'
+            ->  Ew;
+        """
+        print("parsing in E", self.next_token)
+        if self.next_token[0] == "let":
+            self.read("let")
+            self.D()
+            self.read("in")
+            self.E()
+            Tree("let", 2)   #decide the number of children 3
+        elif self.next_token[0] == "fn":
+            self.read("fn")
+            n = 0
+            while self.next_token[1] == "IDENTIFIER" or self.next_token[1] == "(": # first set of Vb ->[ IDENTIFIER , '(' ]
+                self.Vb()
+                n += 1
+            self.read(".")
+            self.E()
+            Tree("lambda", n+1 )  #decide the number of children 4
+        else:
+            self.Ew()
+
 
     def Ew(self):
-        pass
-
+        """ Ew-> T 'where' Dr    => 'where'
+                -> T;
+        """
+        print("parsing in Ew", self.next_token)
+        self.T()
+        if self.next_token[0] == "where":
+            self.read("where")
+            self.Dr()
+            Tree("where", 2)  #decide the number of children 5
+    
     def T(self):
-        pass
+        """ 
+        T   -> Ta (','  Ta)+    => 'tau'
+            -> Ta;
+        """
+        print("parsing in T", self.next_token)
+        self.Ta()
+        if self.next_token[0] == ",":
+            n=0
+            while self.next_token[0] == ",":
+                self.read(",")
+                self.Ta()
+                n+=1
+            Tree("tau", n+1) #decide the number of children 6
 
     def Ta(self):
-        pass
+        """ 
+        Ta  -> Ta 'aug' Tc    => 'aug'
+            -> Tc;
+        """
+        print("parsing in Ta", self.next_token)
+        self.Tc()
+        while self.next_token[0] == "aug":
+            self.read("aug")
+            self.Tc()
+            Tree("aug", 2)  #decide the number of children 7
 
     def Tc(self):
-        pass
+        """
+        Tc  -> B '->' Tc '|' Tc   => '->'
+            -> B;
+        """
+        print("parsing in Tc", self.next_token)
+        self.B()
+        if self.next_token[0] == "->":
+            while self.next_token[0] == "->":   # check why this while loop is not included 8
+                self.read("->")
+                self.Tc()
+                self.read("|")
+                self.Tc()
+                Tree("->", 3)
 
     def B(self):
-        pass
+        """
+        B   -> B 'or' Bt    => 'or'
+            -> Bt;
+        """
+        print("parsing in B", self.next_token)
+        self.Bt()
+        while self.next_token[0] == "or":
+            self.read("or")
+            self.Bt()
+            Tree("or", 2)  #decide the number of children 9
 
     def Bt(self):
-        pass
+        """
+        Bt  -> Bt '&' Bs    => '&'
+            -> Bs;
+        """
+        print("parsing in Bt", self.next_token)
+        self.Bs()
+        while self.next_token[0] == "&":
+            self.read("&")
+            self.Bs()
+            Tree("&", 2)
 
     def Bs(self):
-        pass
+        """
+        Bs  -> 'not' Bp    => 'not'
+            -> Bp;
+        """
+        print("parsing in Bs", self.next_token)
+        if self.next_token[0] == "not":
+            self.read("not")
+            self.Bp()
+            Tree("not", 1)
+        else:
+            self.Bp()
 
     def Bp(self):
-        pass
+        """
+        Bp  -> A ('gr' | '>' ) A    => 'gr'
+            -> A ('ge' | '>=' ) A   => 'ge'
+            -> A ('ls' | '<' ) A    => 'ls'
+            -> A ('le' | '<=' ) A   => 'le'
+            -> A 'eq' A             => 'eq'
+            -> A 'ne' A             => 'ne'
+            -> A;
+        """
+        print("parsing in Bp", self.next_token)
+        self.A()
+        if self.next_token[0] == "gr" or self.next_token[0] == ">":
+            self.read(self.next_token[0])
+            self.A()
+            Tree("gr", 2)
+        elif self.next_token[0] == "ge" or self.next_token[0] == ">=":
+            self.read(self.next_token[0])
+            self.A()
+            Tree("ge", 2)
+        elif self.next_token[0] == "ls" or self.next_token[0] == "<":
+            self.read(self.next_token[0])
+            self.A()
+            Tree("ls", 2)
+        elif self.next_token[0] == "le" or self.next_token[0] == "<=":
+            self.read(self.next_token[0])
+            self.A()
+            Tree("le", 2)
+        elif self.next_token[0] == "eq":
+            self.read("eq")
+            self.A()
+            Tree("eq", 2)
+        elif self.next_token[0] == "ne":
+            self.read("ne")
+            self.A()
+            Tree("ne", 2)
+        # other values should not be passed from this
 
     def A(self):
-        pass
+        """
+        A   -> A '+' At    => '+'
+            -> A '-' At    => '-'
+            ->   '+' At
+            ->   '-' At    => 'neg'
+            -> At;
+        """
+        print("parsing in A", self.next_token)
+        if self.next_token[0]=="+":
+            self.read("+")
+            self.At()
+        elif self.next_token[0]=="-":
+            self.read("-")
+            self.At()
+            Tree("-", 2)
+        else:
+            self.At()
+        while self.next_token[0] == "+" or self.next_token[0] == "-":
+            if self.next_token[0]=="+":
+                self.read("+")
+                self.At()
+                Tree("+", 2)
+            elif self.next_token[0]=="-":
+                self.read("-")
+                self.At()
+                Tree("-", 2)
 
     def At(self):
-        pass
+        """
+        At  -> At '*' Af    => '*'
+            -> At '/' Af    => '/'
+            -> Af;
+        """
+        print("parsing in At", self.next_token)
+        self.Af()
+        while self.next_token[0] == "*" or self.next_token[0] == "/":
+            if self.next_token[0]=="*":
+                self.read("*")
+                self.Af()
+                Tree("*", 2)
+            elif self.next_token[0]=="/":
+                self.read("/")
+                self.Af()
+                Tree("/", 2)
 
     def Af(self):
-        pass
+        """
+        Af  -> Ap '**' Af    => '**'
+            -> Ap;
+        """
+        print("parsing in Af", self.next_token)
+        self.Ap()
+        if self.next_token[0] == "**":
+            self.read("**")
+            self.Af()
+            Tree("**", 2)
 
     def Ap(self):
-        pass
+        """
+        Ap  -> Ap '@' <identifier> R    => '@'
+            -> R;
+        """
+        print("parsing in Ap", self.next_token)
+        self.R()
+        while self.next_token[0] == "@":
+            self.read("@")
+            # check if the next token is an identifier
+            if self.next_token[1] == "IDENTIFIER":
+                self.read(self.next_token[0])
+            else:
+                print(f"Error: Expected an identifier but got {self.next_token[0]}")
+                sys.exit()
+            self.R()
+            Tree("@", 3)
 
     def R(self):
-        pass
+        """
+        R   -> R Rn    => 'gamma'
+            -> Rn;
+        """
+        print("parsing in R", self.next_token)
+        self.Rn()
+        while self.next_token[1] in ["IDENTIFIER", "INTEGER", "STRING"] or self.next_token[0] in ["true", "false","nil", "(", "dummy"]: # check if the next token is in the first set of Rn
+            self.Rn()
+            Tree("gamma", 2)
 
     def Rn(self):
-        pass
+        """
+        Rn  -> <Identifier>
+            -> <Integer>
+            -> <String>
+            -> 'true'       => 'true'
+            -> 'false'      => 'false'
+            -> 'nil'        => 'nil'
+            -> '(' E ')'
+            -> 'dummy'      => 'dummy';
+        """
+        print("parsing in Rn", self.next_token)
+        if self.next_token[1] == "IDENTIFIER":
+            self.read(self.next_token[0])
+            Tree("id :"+ self.next_token[0], 0)
+        elif self.next_token[1] == "INTEGER":
+            self.read(self.next_token[0])
+            Tree("int :"+ self.next_token[0], 0)
+        elif self.next_token[1] == "STRING":
+            self.read(self.next_token[0])
+            Tree("str :"+ self.next_token[0], 0)
+
+        elif self.next_token[0] == "true":
+            self.read("true")
+            Tree("true", 0)
+        elif self.next_token[0] == "false":
+            self.read("false")
+            Tree("false", 0)
+        elif self.next_token[0] == "nil":
+            self.read("nil")
+            Tree("nil", 0)
+        elif self.next_token[0] == "(":
+            self.read("(")
+            self.E()
+            self.read(")")
+        elif self.next_token[0] == "dummy":
+            self.read("dummy")
+            Tree("dummy", 0)
+        else:
+            print(f"Error: Expected an identifier, integer, string, 'true', 'false', 'nil', '(', or 'dummy' but got {self.next_token[0]}")
+            sys.exit()
 
     def D(self):
-        pass
+        """
+        D   -> Da 'within' D    => 'within'
+            -> Da;
+        """
+        print("parsing in D", self.next_token)
+        self.Da()
+        if self.next_token[0] == "within":
+            self.read("within")
+            self.D()
+            Tree("within", 2)
 
     def Da(self):
-        pass
+        """
+        Da  -> Dr ('and' Da)+    => 'and'
+            -> Dr;
+        """
+        print("parsing in Da", self.next_token)
+        self.Dr()
+        if self.next_token[0] == "and":
+            n=0
+            while self.next_token[0] == "and":
+                self.read("and")
+                self.Dr()
+                n+=1
+            Tree("and", n+1)
+
 
     def Dr(self):
-        pass
+        """
+        Dr  -> 'rec' Db    => 'rec'
+            -> Db;
+        """
+        print("parsing in Dr", self.next_token)
+        if self.next_token[0] == "rec":
+            self.read("rec")
+            self.Db()
+            Tree("rec", 1)
+        else:
+            self.Db()
 
     def Db(self):
-        pass
+        """
+        Db  -> Vl '=' E    => '='
+            -> <identifier> Vb+ '=' E    => 'fcn_form';
+            -> '(' D ')';
+        """
+        print("parsing in Db", self.next_token)
+        if self.next_token[1] == "IDENTIFIER":
+            self.read(self.next_token[0])
+            n=0
+            while self.next_token[1] == "IDENTIFIER" or self.next_token[1] == "(":  # check if the next token is in the first set of Vb
+                self.read(self.next_token[0])
+                self.Vb()
+                n+=1
+            self.read("=")
+            self.E()
+            Tree("fcn_form", n+2)
+        elif self.next_token[0] == "(":
+            self.read("(")
+            self.D()
+            self.read(")")
+        else:
+            self.Vl()
+            self.read("=")
+            self.E()
+            Tree("=", 2)
+
 
     def Vb(self): 
-        pass
+        """
+        Vb -> <identifier>
+            -> '(' Vl ')'
+            -> '(' ')'  => '()';
+        """
+        print("parsing in Vb", self.next_token)
+        if self.next_token[1] == "IDENTIFIER":
+            self.read(self.next_token[0])
+        elif self.next_token[0] == "(":
+            self.read("(")
+            if self.next_token[0] == ")":
+                self.read(")")
+                Tree("()", 0)
+            elif self.next_token[1] == "IDENTIFIER": #first set of Vl
+                self.Vl()
+                self.read(")")
+        else:
+            print(f"Error: Expected an identifier or  '(' but got {self.next_token[0]}")
+            sys.exit()
 
     def Vl(self):
-        pass   
+        """
+        Vl  -> <identifier> (',' <identifier>)*    => ','?
+        """ 
+        print("parsing in Vl", self.next_token)
+        if self.next_token[1] == "IDENTIFIER":
+            self.read(self.next_token[0])
+            while self.next_token[0] == ",":
+                self.read(",")
+                if self.next_token[1] == "IDENTIFIER":
+                    self.read(self.next_token[0])
+                else:
+                    print(f"Error: Expected an identifier but got {self.next_token[0]}")
+                    sys.exit()
+        else:
+            print(f"Error: Expected an identifier but got {self.next_token[0]}")
+            sys.exit()  
 
 
 
@@ -218,8 +605,9 @@ def main():
     tokens = LE.lexical_analyser()
     # for token in tokens:
     #     print(token[0], token[1])
-    P=Parser(tokens)
-
+    P=Parser(tokens) 
+    P.E()
+    Tree.call_tree()
 
 if __name__ == "__main__":
     main()
