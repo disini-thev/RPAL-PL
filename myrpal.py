@@ -37,8 +37,27 @@ class Tree:
         if not Tree.node_stack.is_empty():
             root = Tree.node_stack.pop()
             preorder_traversal(root)
+            # level_order_traversal(root)
+
         else:
             print("Tree is empty")
+        
+def level_order_traversal(root):
+    if root is None:
+        return
+
+    queue = []
+    queue.append((root, 0))  # Add root node with level 0
+
+    while len(queue) > 0:
+        node, level = queue.pop(0)
+        print("."*level, end=" ")
+        print (node.value)
+        # print(f"Level: {level}, Value: {node.value}")
+
+        for child in node.children:
+            if child is not None:
+                queue.append((child, level + 1))
 
 def preorder_traversal(root, level=0):
     if root is None:
@@ -332,7 +351,7 @@ class Parser:
             if self.next_token[1] == "IDENTIFIER":
                 self.read(self.next_token[0])
                 self.R()
-                Tree("@", 3)
+                Tree("@", 2) #fixed the number of children, check again
             else:
                 print(f"Error: Expected an identifier but got {self.next_token[0]}")
                 sys.exit()
@@ -459,6 +478,7 @@ class Parser:
             val = self.next_token[0]
             self.read(self.next_token[0])
             Tree(val,0)
+            # print(self.next_token)
 
             if self.next_token[0]=="," or self.next_token[0] == "=":  #checking if this should go through vl
                 self.Vl()
@@ -470,8 +490,9 @@ class Parser:
                 n=0
                 self.Vb()
                 n+=1
+                # print("Next ",self.next_token)
                 while self.next_token[1] == "IDENTIFIER" or self.next_token[1] == "(":  # check if the next token is in the first set of Vb
-                    self.read(self.next_token[0])
+                    #fixed the extra reading of the token
                     self.Vb()
                     n+=1
                 self.read("=")
@@ -494,6 +515,7 @@ class Parser:
             # print(self.next_token)
             self.read(self.next_token[0])
             Tree(val, 0)
+            # print("setjfs")
         elif self.next_token[0] == "(":
             self.read("(")
             if self.next_token[0] == ")":
@@ -544,7 +566,7 @@ class LexicalAnalyser:
         self.prog_file = prog_file
         self.tokens = []
         self.pos = 0
-        self.text = ""      
+        self.text = ""  
     
     def tokenize_spaces(self, token):
         """ Tokenize spaces in the text: Assign "DELETE" """
@@ -577,6 +599,7 @@ class LexicalAnalyser:
         while (self.pos < len(self.text) and self.text[self.pos] in self.Operator_symbols):
             token += self.text[self.pos]
             self.pos += 1
+            print(self.text[self.pos])
         self.tokens.append((token,"OPERATOR"))
         # print(token)
 
@@ -602,6 +625,11 @@ class LexicalAnalyser:
         """ Tokenize symbols in the text: Assign the same symbol """
         self.tokens.append((token,token))
         # print(token)
+    
+    def screener(self):
+        for token in self.tokens:
+            if token[1] == "DELETE" or token[1] == "COMMENT":
+                self.tokens.remove(token)    
     
     def lexical_analyser(self):
         with open(self.prog_file, 'r') as file:
@@ -663,29 +691,23 @@ class LexicalAnalyser:
                 print(f"Error: Invalid character '{char}' found.")
                 return
             # print(self.tokens)
+        # phase 2 of Lexical Analysis : Screening
+        self.screener()
         return self.tokens
 
-def main():
-    prog_file_Li = sys.argv[1:]
-    for prog_file in prog_file_Li:
-        print("\n")
-        LE = LexicalAnalyser(prog_file)
-        tokens = LE.lexical_analyser()
-        for token in tokens:
-            print(token[0], token[1])
-        P = Parser(tokens)
-        P.stripDel()
-        P.E()
-        Tree.call_tree()
-    # prog_file = sys.argv[1]
 
-    # LE = LexicalAnalyser(prog_file)
-    # tokens = LE.lexical_analyser()
-    # # for token in tokens:
-    # #     print(token[0], token[1])
-    # P=Parser(tokens) 
-    # P.E()
-    # Tree.call_tree()
+def main():
+    prog_file = sys.argv[1]
+    # for prog_file in prog_file_Li:
+    #     print("\n")
+    LE = LexicalAnalyser(prog_file)
+    tokens = LE.lexical_analyser()
+    # for token in tokens:
+    #     print(token[0], token[1])
+    P = Parser(tokens)
+    P.stripDel()
+    P.E()
+    Tree.call_tree()
 
 if __name__ == "__main__":
     main()
