@@ -4,7 +4,7 @@ class LexicalAnalyser:
     # digits are handled using isdigit
     # spaces are handled using isspace
     
-    Operator_symbols = "+-*<>&.@/:=~|$!#%^_[]{}'?" +'"'
+    Operator_symbols = "+-*<>&.@/:=~|$!#%^_[]{}?" +'"'
 
     """ each lexical analyzer instance should have a program file, a token list, 
     a pointer to the current position, and the text of the program initialized to an empty string"""
@@ -51,11 +51,11 @@ class LexicalAnalyser:
 
     def tokenize_string(self, token):
         """ Tokenize strings in the text: Assign "STRING" """
-        while self.pos < (len(self.text)-1) and self.text[self.pos:self.pos+2] != "''":
+        while self.pos < (len(self.text)-1) and self.text[self.pos] != "'":
             token += self.text[self.pos]
             self.pos += 1
-        token += "''"  # Append closing quote
-        self.pos += 2  # Move past the closing quote
+        token += "'"  # Append closing quote
+        self.pos += 1  # Move past the closing quote
         self.tokens.append((token, "STRING"))
         # print(token) 
 
@@ -75,7 +75,7 @@ class LexicalAnalyser:
     def screener(self):
         copy_tokens = self.tokens.copy()
         for token in copy_tokens:
-            print(token)
+            # print(token)
             if token[1] == "DELETE" or token[1] == "COMMENT":
                 self.tokens.remove(token)
 
@@ -118,10 +118,10 @@ class LexicalAnalyser:
                 self.tokenize_comment(token)
 
             # tokenize strings
-            elif (self.pos+1 <len(self.text)) and (char+ self.text[self.pos+1] == "''"):
+            elif (self.pos+1 <len(self.text)) and (char == "'"):
                 # print("String found")       
-                token = char+self.text[self.pos+1]
-                self.pos += 2
+                token = char
+                self.pos += 1
                 self.tokenize_string(token)
             
             # tokenize operators
