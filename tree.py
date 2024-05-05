@@ -1,18 +1,5 @@
-class Stack:
-    def __init__(self):
-        self.stack = []
-
-    def push(self, item):
-        self.stack.append(item)
-
-    def pop(self):
-        if not self.is_empty():
-            return self.stack.pop()
-        else:
-            raise Exception("Stack is empty")
-
-    def is_empty(self):
-        return len(self.stack) == 0
+from stack import Stack
+import sys
 
 class Tree:
     # a stack containing nodes
@@ -22,6 +9,7 @@ class Tree:
         self.value = value
         self.num_children = num_children
         self.children = [None] * num_children
+        # print("\nTREE BUILT\n", value, num_children)
         self.build_tree()
 
     def build_tree(self):
@@ -31,6 +19,25 @@ class Tree:
             self.children[i] = Tree.node_stack.pop()
         Tree.node_stack.push(self)
 
+    def standardize_tree():
+        if not Tree.node_stack.is_empty():
+            root = Tree.node_stack.pop()
+            print("STANDARDIZING INITIALIZED >>>>> ", root.value)
+            S = Standardizer(root)
+            root = S.standardize_tree(root)
+            print("STANDARDIZING DONE >>>>> ")
+            Tree.node_stack.push(root)
+            preorder_traversal(root)
+            # level_order_traversal(root)
+    
+    def print_AST():
+        if not Tree.node_stack.is_empty():
+            root = Tree.node_stack.top()
+            preorder_traversal(root)
+            # level_order_traversal(root)
+        else:
+            print("Tree is empty")
+        
 def level_order_traversal(root):
     if root is None:
         return
@@ -40,7 +47,7 @@ def level_order_traversal(root):
 
     while len(queue) > 0:
         node, level = queue.pop(0)
-        print("."*level, end="")
+        print("."*level, end=" ")
         print (node.value)
         # print(f"Level: {level}, Value: {node.value}")
 
@@ -58,20 +65,143 @@ def preorder_traversal(root, level=0):
         preorder_traversal(child, level + 1)  # Recursively traverse each child node with increased level
 
 
-# Sample code to test the Tree class
+# standardize the tree
+class Standardizer:
+    def __init__(self, root):
+        self.root = root
 
-# Create a tree with value 1 and 3 children
-t1=Tree("f",0)
-t2=Tree("x",0)
-t3=Tree(3,0)
-t4=Tree("func_form",3)
-t5=Tree("p",0)
-t6=Tree("f",0)
-t7=Tree("3",0)
-t8=Tree("gamma",2)
-t9=Tree("gamma",2)
-t10=Tree("let",2)
+    def standardize_tree(self, root):
+        if root is None:
+            return
+        print("Current root ", root.value)
+        for i in range (root.num_children):
+                root.children[i] = self.standardize_tree(root.children[i])
+            # ensured the standardized structure of the children nodes
 
+        if root.value == "let":
+            print("Standardizing let")
+            root.value = "gamma"
+            if root.children[0].value != "=":
+                print("Error: Expected '=' in let")
+                sys.exit()
+            #else
+            root.children[0].value = "lambda"
+            root.children[0].children[1], root.children[1] = root.children[1], root.children[0].children[1] #exchange the children 
+            return root
+        
+        if root.value == "where":
+            print("Standardizing where")
+            root.value = "gamma"
+            root.children[0], root.children[1] = root.children[1], root.children[0]
+            # if root.children[0].value != "=":
+            #     print("Error: Expected '=' in let")
+            #     sys.exit()
+            #else
+            root.children[0].value = "lambda"
+            root.children[0].children[1], root.children[1] = root.children[1], root.children[0].children[1] #exchange the children 
+            return root
 
+        if root.value == "fcn_form": # P V+ E 
+            print("Standardizing fcn_form")
+            #restructuring : push all the children to the stack
+            for child in root.children: 
+                Tree.node_stack.push(child)
+            num_lambda = root.num_children - 2 # number of newly introduced lamba nodes
+            for i in range(num_lambda):
+                Tree("lambda", 2)
+            Tree("=",2) # check if the root is changed or just a temporary root created
+            root = Tree.node_stack.pop()
+            return root
+        
+        """
+        # if root.value in ["tau", ",", "->","or","&","not","gr","ge","ls","le","eq","ne","+", "-", "neg", "*", "/","**","="]:
+        #     # do not standardize these nodes, keep them as they are
+        #     return
 
-preorder_traversal(t10)
+        # if root.value in ["true", "false", "nil", "dummy"]:
+        #     # no children to standardize
+        #     return
+        
+        # check what to do with id int str
+        #################################################
+        """
+        
+        if root.value == "lambda": # V++ E 
+            print("Standardizing lambda")
+            #restructuring : push all the children to the stack
+            for child in root.children: 
+                Tree.node_stack.push(child)
+            num_lambda = root.num_children - 2 # number of newly introduced lamba nodes
+            for i in range(num_lambda):
+                Tree("lambda", 2)
+            Tree("lambda",2) # check if the root is changed or just a temporary root created
+            root = Tree.node_stack.pop() 
+            return root
+
+        if root.value == "within":
+            print("Standardizing within")
+            # after standardizing the child nodes
+            """ within
+                /     \
+                =      =
+              /  \    /  \  
+             x1  E1  x2  E2 
+            """
+            Tree.node_stack.push(root.children[1].children[0]) # x2   #stack x2
+            Tree.node_stack.push(root.children[0].children[0]) # x1   #stack x1 x2
+            Tree.node_stack.push(root.children[1].children[1]) # E2   #stack E2 x1 x2
+            Tree("lambda", 2)                                # stack lambda x2
+            Tree.node_stack.push(root.children[0].children[1]) # E1   #stack E1 lambda x2
+            Tree("gamma", 2)                                 # stack gamma x2
+            Tree("=", 2)                              # stack =
+            root = Tree.node_stack.pop()                            # empty stack
+            return root
+
+        if root.value == "@":
+            print("Standardizing @")
+            # after standardizing the child nodes
+            """    @
+                /  |  \
+               E1  N   E2
+            """
+            Tree.node_stack.push(root.children[1]) # N    #stack N
+            Tree.node_stack.push(root.children[0]) # E1   #stack E1 N
+            Tree("gamma", 2)                              # stack gamma 
+            Tree.node_stack.push(root.children[2]) # E2   #stack E2 gamma
+            Tree("gamma", 2)                       # stack gamma          
+            root = Tree.node_stack.pop()                         # empty stack
+            return root
+
+        if root.value == "and":
+            print("Standardizing and")
+            # after standardizing the child nodes
+            """ and
+                /   \
+               =     =
+              / \   / \
+             x1 E1 x2 E2
+            """
+            root.children[0][1], root.children[1][0]= root.children[1][0], root.children[0][1] #exchange the children
+            root.children[0].value = ","
+            root.children[1].value = "tau"
+            return root
+        
+        if root.value == "rec":
+            print("Standardizing rec")
+            # after standardizing the child nodes
+            """ rec
+                |
+                =
+               / \
+              x  E
+            """
+            Tree.node_stack.push(root.children[0].children[0])       # x    # stack x
+            Tree("Ystar", 0)                                         # stack Ystar
+            Tree.node_stack.push(root.children[0].children[0]) # x   # stack x Ystar x
+            Tree.node_stack.push(root.children[0].children[1]) # E   # stack E x Ystar x
+            Tree("lambda", 2)                                        # stack lambda Ystar x
+            Tree("gamma", 2)                                         # stack gamma x
+            Tree("=", 2)                                             # stack =
+            root = Tree.node_stack.pop()                             # empty stack
+            return root
+        return root
