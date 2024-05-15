@@ -231,6 +231,7 @@ class Parser:
                 self.read("-")
                 self.At()
                 Tree("-", 2)
+            
         # print("Returning from A")
 
     def At(self):
@@ -339,15 +340,15 @@ class Parser:
         elif self.next_token[1] == "IDENTIFIER":
             val = self.next_token[0]
             self.read(self.next_token[0])
-            Tree("id :"+ val, 0)
+            Tree("<id:"+ val + ">", 0)
         elif self.next_token[1] == "INTEGER":
             val = self.next_token[0]
             self.read(self.next_token[0])
-            Tree("int :"+ val, 0)
+            Tree("<int:"+ val + ">", 0)
         elif self.next_token[1] == "STRING":
             val = self.next_token[0]
             self.read(self.next_token[0])
-            Tree("str :"+ val, 0)
+            Tree("<str:"+ val + ">", 0)
         else:
             print(f"Error: Expected an identifier, integer, string, 'true', 'false', 'nil', '(', or 'dummy' but got {self.next_token[0]}")
             sys.exit()
@@ -412,7 +413,7 @@ class Parser:
         elif self.next_token[1] == "IDENTIFIER":
             val = self.next_token[0]
             self.read(self.next_token[0])
-            Tree(val,0)
+            Tree("<id:"+ val + ">", 0)
             # print(self.next_token)
 
             if self.next_token[0]=="," or self.next_token[0] == "=":  #checking if this should go through vl
@@ -449,7 +450,7 @@ class Parser:
             val = self.next_token[0]
             # print(self.next_token)
             self.read(self.next_token[0])
-            Tree(val, 0)
+            Tree("<id:"+ val + ">", 0)
             # print("setjfs")
         elif self.next_token[0] == "(":
             self.read("(")
@@ -459,7 +460,7 @@ class Parser:
             elif self.next_token[1] == "IDENTIFIER": #first set of Vl
                 val = self.next_token[0]
                 self.read(self.next_token[0])
-                Tree(val,0)
+                Tree("<id:"+ val + ">", 0)
                 self.Vl()
                 self.read(")")
         else:
@@ -478,7 +479,7 @@ class Parser:
             if self.next_token[1] == "IDENTIFIER":
                 val = self.next_token[0]
                 self.read(self.next_token[0])
-                Tree(val,0)
+                Tree("<id:"+ val + ">", 0)
                 n+=1
             else:
                 print("Error from Vl")

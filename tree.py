@@ -19,67 +19,70 @@ class Tree:
             self.children[i] = Tree.node_stack.pop()
         Tree.node_stack.push(self)
 
-    def standardize_tree():
-        if not Tree.node_stack.is_empty():
-            root = Tree.node_stack.pop()
-            print("STANDARDIZING INITIALIZED >>>>> ", root.value)
-            S = Standardizer(root)
-            root = S.standardize_tree(root)
-            print("STANDARDIZING DONE >>>>> ")
-            Tree.node_stack.push(root)
-            preorder_traversal(root)
-            # level_order_traversal(root)
-    
-    def print_AST():
-        if not Tree.node_stack.is_empty():
-            root = Tree.node_stack.top()
-            preorder_traversal(root)
-            # level_order_traversal(root)
-        else:
-            print("Tree is empty")
-        
-def level_order_traversal(root):
-    if root is None:
-        return
-
-    queue = []
-    queue.append((root, 0))  # Add root node with level 0
-
-    while len(queue) > 0:
-        node, level = queue.pop(0)
-        print("."*level, end=" ")
-        print (node.value)
-        # print(f"Level: {level}, Value: {node.value}")
-
-        for child in node.children:
-            if child is not None:
-                queue.append((child, level + 1))
-
-def preorder_traversal(root, level=0):
-    if root is None:
-        return
-
-    print("." * level, root.value)
-
-    for child in root.children:
-        preorder_traversal(child, level + 1)  # Recursively traverse each child node with increased level
-
-
-# standardize the tree
-class Standardizer:
-    def __init__(self, root):
-        self.root = root
-
-    def standardize_tree(self, root):
+   
+    def print_AST(root, level=0):
+        # preorder_traversal_AST(root)
         if root is None:
             return
-        print("Current root ", root.value)
+
+        print("." * level + root.value)
+
+        for child in root.children:
+            Tree.print_AST(child, level + 1)  # Recursively traverse each child node with increased level
+
+    
+    def ST_to_string(root, level=0):
+        # preorder_traversal_AST(root)
+        if root is None:
+            return ""
+        print(root.value)
+
+        result = "." * level + root.value + "\n"
+
+        for child in root.children:
+            result += Tree.ST_to_string(child, level + 1)
+        return result
+
+    
+    # pre order traversalto print the ST
+    """
+    def print_ST(root):
+        if root is None:
+            return
+
+        print(root.value, end="\t")
+
+        for child in root.children:
+            Tree.print_ST(child)  # Recursively traverse each child node
+    """
+    
+    def level_order_traversal(root):
+        if root is None:
+            return
+
+        queue = []
+        queue.append((root, 0))  # Add root node with level 0
+
+        while len(queue) > 0:
+            node, level = queue.pop(0)
+            print("."*level, end=" ")
+            print (node.value)
+
+            for child in node.children:
+                if child is not None:
+                    queue.append((child, level + 1))
+
+
+    def standardize_tree(root):
+        if root is None:
+            return
+        # print("Current root ", root.value)
         for i in range (root.num_children):
-                root.children[i] = self.standardize_tree(root.children[i])
+                root.children[i] = Tree.standardize_tree(root.children[i])
             # ensured the standardized structure of the children nodes
 
         if root.value == "let":
-            print("Standardizing let")
+            # print("Standardizing let")
             root.value = "gamma"
             if root.children[0].value != "=":
                 print("Error: Expected '=' in let")
@@ -90,7 +93,7 @@ class Standardizer:
             return root
         
         if root.value == "where":
-            print("Standardizing where")
+            # print("Standardizing where")
             root.value = "gamma"
             root.children[0], root.children[1] = root.children[1], root.children[0]
             # if root.children[0].value != "=":
@@ -102,7 +105,7 @@ class Standardizer:
             return root
 
         if root.value == "fcn_form": # P V+ E 
-            print("Standardizing fcn_form")
+            # print("Standardizing fcn_form")
             #restructuring : push all the children to the stack
             for child in root.children: 
                 Tree.node_stack.push(child)
@@ -127,7 +130,7 @@ class Standardizer:
         """
         
         if root.value == "lambda": # V++ E 
-            print("Standardizing lambda")
+            # print("Standardizing lambda")
             #restructuring : push all the children to the stack
             for child in root.children: 
                 Tree.node_stack.push(child)
@@ -139,7 +142,7 @@ class Standardizer:
             return root
 
         if root.value == "within":
-            print("Standardizing within")
+            # print("Standardizing within")
             # after standardizing the child nodes
             """ within
                 /     \
@@ -158,7 +161,7 @@ class Standardizer:
             return root
 
         if root.value == "@":
-            print("Standardizing @")
+            # print("Standardizing @")
             # after standardizing the child nodes
             """    @
                 /  |  \
@@ -173,7 +176,7 @@ class Standardizer:
             return root
 
         if root.value == "and":
-            print("Standardizing and")
+            # print("Standardizing and")
             # after standardizing the child nodes
             """ and
                 /   \
@@ -181,13 +184,14 @@ class Standardizer:
               / \   / \
              x1 E1 x2 E2
             """
-            root.children[0][1], root.children[1][0]= root.children[1][0], root.children[0][1] #exchange the children
+            root.children[0].children[1], root.children[1].children[0]= root.children[1].children[0], root.children[0].children[1] #exchange the children
+            root.value = "="
             root.children[0].value = ","
             root.children[1].value = "tau"
             return root
         
         if root.value == "rec":
-            print("Standardizing rec")
+            # print("Standardizing rec")
             # after standardizing the child nodes
             """ rec
                 |
@@ -196,7 +200,7 @@ class Standardizer:
               x  E
             """
             Tree.node_stack.push(root.children[0].children[0])       # x    # stack x
-            Tree("Ystar", 0)                                         # stack Ystar
+            Tree("ystar", 0)                                         # stack ystar
             Tree.node_stack.push(root.children[0].children[0]) # x   # stack x Ystar x
             Tree.node_stack.push(root.children[0].children[1]) # E   # stack E x Ystar x
             Tree("lambda", 2)                                        # stack lambda Ystar x
@@ -205,3 +209,11 @@ class Standardizer:
             root = Tree.node_stack.pop()                             # empty stack
             return root
         return root
+
+    
+        
+
+    
+
+
+    
