@@ -19,6 +19,7 @@ def main():
     # P.stripDel()
     P.E()
     AST = Tree.node_stack.top()
+    print("Abstract Syntax Tree")
     Tree.print_AST(AST)
 
     with open("..\\Rpal-Interpreter\\AST_output.txt", "w") as file:
@@ -26,11 +27,11 @@ def main():
 
     # standardizing the tree
     ST = Tree.standardize_tree(AST)
-    Tree.print_AST(ST)
+    # Tree.print_AST(ST)
 
 
 
-    print("\n\n\n CSE Machine\n\n\n")
+    print("CSE Machine", end="\t")
 
     machine = CSE_Machine()
     machine.run(ST)

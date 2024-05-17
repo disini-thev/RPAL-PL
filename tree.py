@@ -35,7 +35,7 @@ class Tree:
         # preorder_traversal_AST(root)
         if root is None:
             return ""
-        print(root.value)
+        # print(root.value)
 
         result = "." * level + root.value + "\n"
 
